@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学びの深掘りQA</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>学びの深掘りQA</h1>
+            <p class="subtitle">学んだことを言語化して、理解を深めよう</p>
+        </header>
+
+        <!-- 入力画面 -->
+        <section id="input-section" class="section">
+            <div class="card">
+                <h2>今日学んだことは？</h2>
+                <textarea
+                    id="learning-input"
+                    placeholder="例: Gitのブランチ戦略について学んだ&#10;&#10;どんな小さなことでもOK！&#10;キーワードだけでも大丈夫です。"
+                    rows="5"
+                ></textarea>
+                <button id="start-btn" class="btn primary">質問を始める</button>
+            </div>
+        </section>
+
+        <!-- QA画面 -->
+        <section id="qa-section" class="section hidden">
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <p class="progress-text"><span id="current-q">1</span> / <span id="total-q">8</span></p>
+
+            <div class="card qa-card">
+                <span id="question-category" class="category-badge"></span>
+                <h2 id="question-text" class="question"></h2>
+                <textarea
+                    id="answer-input"
+                    placeholder="あなたの考えを書いてみよう..."
+                    rows="4"
+                ></textarea>
+                <div class="btn-group">
+                    <button id="skip-btn" class="btn secondary">スキップ</button>
+                    <button id="answer-btn" class="btn primary">回答する</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 結果画面 -->
+        <section id="result-section" class="section hidden">
+            <div class="card">
+                <h2>学びのまとめ</h2>
+                <div id="learning-summary" class="summary">
+                    <h3>あなたの学び</h3>
+                    <p id="original-learning"></p>
+                </div>
+                <div id="answers-summary" class="answers-list"></div>
+                <div class="stats">
+                    <div class="stat">
+                        <span class="stat-number" id="answered-count">0</span>
+                        <span class="stat-label">回答数</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="skipped-count">0</span>
+                        <span class="stat-label">スキップ</span>
+                    </div>
+                </div>
+                <button id="restart-btn" class="btn primary">新しい学びを入力</button>
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
