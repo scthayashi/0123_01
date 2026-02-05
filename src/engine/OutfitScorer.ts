@@ -9,8 +9,8 @@ import {
   Color,
   Formality,
 } from '../types';
-import { getEventFormality, needsWaterResistant } from '../providers/CalendarProvider';
-import { getTemperatureCategory } from '../providers/WeatherProvider';
+import { getEventFormality } from '../providers/CalendarProvider';
+import { getTemperatureCategory, needsWaterResistant } from '../providers/WeatherProvider';
 
 interface ScoringContext {
   weather: DailyWeather;
@@ -293,7 +293,7 @@ export class OutfitScorer {
   private hasClashingColors(colors: Color[]): boolean {
     const clashingPairs: [Color, Color][] = [
       ['red', 'pink'],
-      ['red', 'orange'],
+      ['red', 'burgundy'],
       ['green', 'red'],
       ['brown', 'black'],
     ];

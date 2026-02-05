@@ -154,7 +154,6 @@ async function main() {
 
   // 2. ユーザー作成
   const user = User.createWithWardrobe('demo-user', wardrobe, {
-    userId: 'demo-user',
     temperatureSensitivity: 'normal',
     defaultFormality: 3,
     favoriteColors: ['navy', 'white', 'gray'],

@@ -20,7 +20,7 @@ export class WeatherProvider implements IWeatherProvider {
   async getCurrentWeather(): Promise<WeatherCondition> {
     // In a real implementation, this would call an actual weather API
     // For now, we return a mock implementation that can be replaced
-    const cached = this.getFromCache('current');
+    const cached = this.getFromCache<WeatherCondition>('current');
     if (cached) return cached;
 
     const weather = await this.fetchCurrentWeather();
@@ -30,7 +30,7 @@ export class WeatherProvider implements IWeatherProvider {
 
   async getDailyForecast(date: Date): Promise<DailyWeather> {
     const dateKey = this.formatDateKey(date);
-    const cached = this.getFromCache(`daily_${dateKey}`);
+    const cached = this.getFromCache<DailyWeather>(`daily_${dateKey}`);
     if (cached) return cached;
 
     const forecast = await this.fetchDailyForecast(date);
@@ -40,7 +40,7 @@ export class WeatherProvider implements IWeatherProvider {
 
   async getHourlyForecast(date: Date, hour: number): Promise<WeatherCondition> {
     const dateKey = this.formatDateKey(date);
-    const cached = this.getFromCache(`hourly_${dateKey}_${hour}`);
+    const cached = this.getFromCache<WeatherCondition>(`hourly_${dateKey}_${hour}`);
     if (cached) return cached;
 
     const forecast = await this.fetchHourlyForecast(date, hour);
