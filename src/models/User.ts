@@ -131,6 +131,19 @@ export class User {
     }
     return user;
   }
+
+  static createWithWardrobe(
+    id: string,
+    wardrobe: Wardrobe,
+    preferences?: Partial<Omit<UserPreferences, 'userId'>>
+  ): User {
+    const user = new User(id);
+    user.setWardrobe(wardrobe);
+    if (preferences) {
+      user.updatePreferences(preferences);
+    }
+    return user;
+  }
 }
 
 export class LearningData {
