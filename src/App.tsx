@@ -1,19 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Wardrobe } from './models/Wardrobe';
 import { User } from './models/User';
-import { OutfitScorer } from './engine/OutfitScorer';
 import { RecommendationEngine } from './engine/RecommendationEngine';
 import { WeatherProvider } from './providers/WeatherProvider';
 import { CalendarProvider } from './providers/CalendarProvider';
 import {
   ClothingItem,
-  ClothingCategory,
-  ClothingSubCategory,
-  Color,
-  Formality,
   ImpressionPreset,
   DailyRecommendation,
   OutfitRecommendation,
+  DailyWeather,
 } from './types';
 import WardrobePanel from './components/WardrobePanel';
 import RecommendationPanel from './components/RecommendationPanel';
@@ -31,9 +27,9 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [confirmedOutfitId, setConfirmedOutfitId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [weather, setWeather] = useState<DailyWeather | null>(null);
 
   useEffect(() => {
-    // Initialize user with sample wardrobe
     const wardrobe = new Wardrobe('user-1');
     const newUser = User.createWithWardrobe('user-1', wardrobe, {
       temperatureSensitivity: 'normal',
@@ -44,6 +40,10 @@ function App() {
       commuteMethod: 'train',
     });
     setUser(newUser);
+
+    // Fetch weather
+    const weatherProvider = new WeatherProvider({ lat: 35.6762, lon: 139.6503 });
+    weatherProvider.getDailyForecast(new Date()).then(setWeather);
   }, []);
 
   const handleAddItem = (item: Omit<ClothingItem, 'id' | 'wearCount'>) => {
@@ -51,6 +51,32 @@ function App() {
     user.getWardrobe().addItem(item);
     setWardrobeVersion(v => v + 1);
     showSuccess('アイテムを追加しました！');
+  };
+
+  const handleLoadSampleData = () => {
+    if (!user) return;
+    const wardrobe = user.getWardrobe();
+
+    const sampleItems: Omit<ClothingItem, 'id' | 'wearCount'>[] = [
+      { name: '白シャツ', category: 'tops', subCategory: 'shirt', color: 'white', colors: ['white'], formality: 4, warmthLevel: 2, waterResistant: false, windResistant: false, tags: ['ビジネス'] },
+      { name: 'ライトブルーシャツ', category: 'tops', subCategory: 'shirt', color: 'light_blue', colors: ['light_blue'], formality: 3, warmthLevel: 2, waterResistant: false, windResistant: false, tags: ['ビジカジ'] },
+      { name: 'ネイビーセーター', category: 'tops', subCategory: 'sweater', color: 'navy', colors: ['navy'], formality: 3, warmthLevel: 4, waterResistant: false, windResistant: false, tags: ['秋冬'] },
+      { name: 'グレーTシャツ', category: 'tops', subCategory: 't-shirt', color: 'gray', colors: ['gray'], formality: 1, warmthLevel: 1, waterResistant: false, windResistant: false, tags: ['カジュアル'] },
+      { name: 'グレースラックス', category: 'bottoms', subCategory: 'dress_pants', color: 'gray', colors: ['gray'], formality: 4, warmthLevel: 3, waterResistant: false, windResistant: false, tags: ['ビジネス'] },
+      { name: 'ネイビーチノパン', category: 'bottoms', subCategory: 'chinos', color: 'navy', colors: ['navy'], formality: 2, warmthLevel: 2, waterResistant: false, windResistant: false, tags: ['ビジカジ'] },
+      { name: 'ベージュチノパン', category: 'bottoms', subCategory: 'chinos', color: 'beige', colors: ['beige'], formality: 2, warmthLevel: 2, waterResistant: false, windResistant: false, tags: ['カジュアル'] },
+      { name: 'ネイビーブレザー', category: 'outerwear', subCategory: 'blazer', color: 'navy', colors: ['navy'], formality: 4, warmthLevel: 3, waterResistant: false, windResistant: true, tags: ['勝負服'] },
+      { name: 'ベージュトレンチ', category: 'outerwear', subCategory: 'trench_coat', color: 'beige', colors: ['beige'], formality: 4, warmthLevel: 3, waterResistant: true, windResistant: true, tags: ['雨の日'] },
+      { name: 'グレーカーディガン', category: 'outerwear', subCategory: 'cardigan_outer', color: 'gray', colors: ['gray'], formality: 2, warmthLevel: 3, waterResistant: false, windResistant: false, tags: ['オフィス'] },
+      { name: '黒革靴', category: 'shoes', subCategory: 'leather_shoes', color: 'black', colors: ['black'], formality: 5, warmthLevel: 2, waterResistant: false, windResistant: false, tags: ['フォーマル'] },
+      { name: '撥水ビジネスシューズ', category: 'shoes', subCategory: 'water_resistant_shoes', color: 'black', colors: ['black'], formality: 4, warmthLevel: 2, waterResistant: true, windResistant: false, tags: ['雨の日'] },
+      { name: 'ブラウンローファー', category: 'shoes', subCategory: 'loafers', color: 'brown', colors: ['brown'], formality: 3, warmthLevel: 2, waterResistant: false, windResistant: false, tags: ['ビジカジ'] },
+      { name: '白スニーカー', category: 'shoes', subCategory: 'sneakers', color: 'white', colors: ['white'], formality: 1, warmthLevel: 1, waterResistant: false, windResistant: false, tags: ['カジュアル'] },
+    ];
+
+    sampleItems.forEach(item => wardrobe.addItem(item));
+    setWardrobeVersion(v => v + 1);
+    showSuccess(`サンプルデータ ${sampleItems.length}点 を追加しました！`);
   };
 
   const handleGetRecommendation = async () => {
@@ -67,12 +93,14 @@ function App() {
       const calendarProvider = new CalendarProvider('train');
       const engine = new RecommendationEngine();
 
-      const weather = await weatherProvider.getDailyForecast(new Date());
+      const weatherData = await weatherProvider.getDailyForecast(new Date());
       const schedule = await calendarProvider.getDailySchedule(new Date());
+
+      setWeather(weatherData);
 
       const rec = await engine.generateDailyRecommendation(
         user,
-        weather,
+        weatherData,
         schedule,
         { impressionPreset: selectedPreset }
       );
@@ -81,7 +109,7 @@ function App() {
       setActiveTab('recommendation');
     } catch (error) {
       console.error('Failed to get recommendation:', error);
-      alert('提案の生成に失敗しました。クローゼットに十分なアイテムがあるか確認してください。');
+      alert('提案の生成に失敗しました。クローゼットに十分なアイテム（トップス・ボトムス・靴）があるか確認してください。');
     } finally {
       setIsLoading(false);
     }
@@ -106,6 +134,7 @@ function App() {
     }
 
     setConfirmedOutfitId(outfitId);
+    setWardrobeVersion(v => v + 1);
     showSuccess('今日のコーディネートを確定しました。行ってらっしゃい！');
   };
 
@@ -142,6 +171,8 @@ function App() {
     { id: 'feedback', label: '📝 フィードバック' },
   ];
 
+  const itemCount = user?.getWardrobe().getItemCount() || 0;
+
   return (
     <div className="app">
       <header className="header">
@@ -149,8 +180,43 @@ function App() {
         <p>朝、1分で"正解"が決まる。迷いも、妥協も、場違いもゼロ。</p>
       </header>
 
+      {/* Stats Bar */}
+      <div className="stats-bar">
+        <div className="stat-card">
+          <div className="stat-icon wardrobe">👕</div>
+          <div className="stat-content">
+            <div className="stat-label">クローゼット</div>
+            <div className="stat-value">{itemCount}点</div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon weather">
+            {weather?.afternoon.precipitationType !== 'none' ? '🌧️' : '☀️'}
+          </div>
+          <div className="stat-content">
+            <div className="stat-label">今日の天気</div>
+            <div className="stat-value">
+              {weather ? `${weather.afternoon.temperature}°C` : '--°C'}
+              {weather?.afternoon.precipitationType !== 'none' && ' 雨'}
+            </div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon score">⭐</div>
+          <div className="stat-content">
+            <div className="stat-label">今日のスコア</div>
+            <div className="stat-value">
+              {recommendation ? `${Math.round(recommendation.primary.score)}点` : '--'}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {successMessage && (
-        <div className="success-message">{successMessage}</div>
+        <div className="success-message">
+          <span>✓</span>
+          {successMessage}
+        </div>
       )}
 
       <div className="tabs">
@@ -171,6 +237,7 @@ function App() {
             key={wardrobeVersion}
             wardrobe={user.getWardrobe()}
             onAddItem={handleAddItem}
+            onLoadSampleData={handleLoadSampleData}
             onGetRecommendation={handleGetRecommendation}
             isLoading={isLoading}
           />
@@ -182,7 +249,7 @@ function App() {
             onSelectPreset={setSelectedPreset}
             onGetRecommendation={handleGetRecommendation}
             isLoading={isLoading}
-            hasItems={user ? user.getWardrobe().getItemCount() > 0 : false}
+            hasItems={itemCount > 0}
           />
         )}
 

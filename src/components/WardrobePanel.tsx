@@ -11,6 +11,7 @@ import {
 interface WardrobePanelProps {
   wardrobe: Wardrobe;
   onAddItem: (item: Omit<ClothingItem, 'id' | 'wearCount'>) => void;
+  onLoadSampleData: () => void;
   onGetRecommendation: () => void;
   isLoading: boolean;
 }
@@ -46,6 +47,7 @@ const SUBCATEGORY_OPTIONS: Record<ClothingCategory, { value: ClothingSubCategory
     { value: 'down_jacket', label: 'ダウンジャケット' },
     { value: 'trench_coat', label: 'トレンチコート' },
     { value: 'stole', label: 'ストール' },
+    { value: 'cardigan_outer', label: 'カーディガン' },
   ],
   shoes: [
     { value: 'leather_shoes', label: '革靴' },
@@ -72,7 +74,7 @@ const COLOR_OPTIONS: { value: Color; label: string; hex: string }[] = [
   { value: 'white', label: '白', hex: '#ffffff' },
   { value: 'gray', label: 'グレー', hex: '#808080' },
   { value: 'navy', label: 'ネイビー', hex: '#000080' },
-  { value: 'blue', label: 'ブルー', hex: '#0000ff' },
+  { value: 'blue', label: 'ブルー', hex: '#0066cc' },
   { value: 'light_blue', label: 'ライトブルー', hex: '#87ceeb' },
   { value: 'beige', label: 'ベージュ', hex: '#f5f5dc' },
   { value: 'brown', label: 'ブラウン', hex: '#8b4513' },
@@ -81,18 +83,27 @@ const COLOR_OPTIONS: { value: Color; label: string; hex: string }[] = [
   { value: 'burgundy', label: 'バーガンディ', hex: '#800020' },
   { value: 'olive', label: 'オリーブ', hex: '#808000' },
   { value: 'camel', label: 'キャメル', hex: '#c19a6b' },
-  { value: 'red', label: '赤', hex: '#ff0000' },
+  { value: 'red', label: '赤', hex: '#cc0000' },
   { value: 'pink', label: 'ピンク', hex: '#ffc0cb' },
-  { value: 'green', label: '緑', hex: '#008000' },
+  { value: 'green', label: '緑', hex: '#228b22' },
 ];
 
 const getCategoryIcon = (category: ClothingCategory): string => {
   return CATEGORY_OPTIONS.find(c => c.value === category)?.icon || '👕';
 };
 
+const getColorHex = (color: Color): string => {
+  return COLOR_OPTIONS.find(c => c.value === color)?.hex || '#808080';
+};
+
+const getColorLabel = (color: Color): string => {
+  return COLOR_OPTIONS.find(c => c.value === color)?.label || color;
+};
+
 export default function WardrobePanel({
   wardrobe,
   onAddItem,
+  onLoadSampleData,
   onGetRecommendation,
   isLoading,
 }: WardrobePanelProps) {
@@ -148,12 +159,25 @@ export default function WardrobePanel({
     ? items
     : items.filter(item => item.category === selectedCategory);
 
+  const categoryCounts = CATEGORY_OPTIONS.reduce((acc, cat) => {
+    acc[cat.value] = items.filter(item => item.category === cat.value).length;
+    return acc;
+  }, {} as Record<ClothingCategory, number>);
+
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h2>クローゼット ({items.length}点)</h2>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-secondary" onClick={() => setShowForm(!showForm)}>
+      <div className="section-header">
+        <h2 className="section-title">クローゼット ({items.length}点)</h2>
+        <div className="section-actions">
+          {items.length === 0 && (
+            <button className="btn btn-outline btn-sm" onClick={onLoadSampleData}>
+              📦 サンプルデータを追加
+            </button>
+          )}
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => setShowForm(!showForm)}
+          >
             {showForm ? '✕ 閉じる' : '+ アイテム追加'}
           </button>
           <button
@@ -161,14 +185,21 @@ export default function WardrobePanel({
             onClick={onGetRecommendation}
             disabled={isLoading || items.length === 0}
           >
-            {isLoading ? '生成中...' : '🎯 提案を見る'}
+            {isLoading ? (
+              <>
+                <span className="loading-spinner" style={{ width: 16, height: 16, marginRight: 8 }}></span>
+                生成中...
+              </>
+            ) : (
+              '🎯 今日の提案を見る'
+            )}
           </button>
         </div>
       </div>
 
       {showForm && (
         <form className="add-item-form" onSubmit={handleSubmit}>
-          <h3 style={{ marginBottom: 16 }}>新しいアイテムを追加</h3>
+          <h3 className="form-title">✨ 新しいアイテムを追加</h3>
           <div className="form-row">
             <div className="form-group">
               <label>アイテム名 *</label>
@@ -177,6 +208,7 @@ export default function WardrobePanel({
                 value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
                 placeholder="例: 白シャツ"
+                autoFocus
               />
             </div>
             <div className="form-group">
@@ -221,7 +253,7 @@ export default function WardrobePanel({
               </select>
             </div>
             <div className="form-group">
-              <label>フォーマル度 (1=カジュアル, 5=フォーマル)</label>
+              <label>フォーマル度</label>
               <select
                 value={formData.formality}
                 onChange={e => setFormData({ ...formData, formality: Number(e.target.value) as Formality })}
@@ -234,7 +266,7 @@ export default function WardrobePanel({
               </select>
             </div>
             <div className="form-group">
-              <label>暖かさ (1=涼しい, 5=暖かい)</label>
+              <label>暖かさ</label>
               <select
                 value={formData.warmthLevel}
                 onChange={e => setFormData({ ...formData, warmthLevel: Number(e.target.value) as 1 | 2 | 3 | 4 | 5 })}
@@ -248,30 +280,30 @@ export default function WardrobePanel({
             </div>
           </div>
           <div className="form-row">
-            <div className="form-group">
-              <label>
+            <div className="checkbox-group">
+              <label className="checkbox-label">
                 <input
                   type="checkbox"
                   checked={formData.waterResistant}
                   onChange={e => setFormData({ ...formData, waterResistant: e.target.checked })}
                 />
-                {' '}撥水加工
+                💧 撥水加工
               </label>
-            </div>
-            <div className="form-group">
-              <label>
+              <label className="checkbox-label">
                 <input
                   type="checkbox"
                   checked={formData.windResistant}
                   onChange={e => setFormData({ ...formData, windResistant: e.target.checked })}
                 />
-                {' '}防風加工
+                🌬️ 防風加工
               </label>
             </div>
           </div>
-          <button type="submit" className="btn btn-success">
-            追加する
-          </button>
+          <div style={{ marginTop: 16 }}>
+            <button type="submit" className="btn btn-success">
+              ✓ 追加する
+            </button>
+          </div>
         </form>
       )}
 
@@ -280,7 +312,7 @@ export default function WardrobePanel({
           className={`filter-btn ${selectedCategory === 'all' ? 'active' : ''}`}
           onClick={() => setSelectedCategory('all')}
         >
-          すべて
+          すべて ({items.length})
         </button>
         {CATEGORY_OPTIONS.map(cat => (
           <button
@@ -288,7 +320,7 @@ export default function WardrobePanel({
             className={`filter-btn ${selectedCategory === cat.value ? 'active' : ''}`}
             onClick={() => setSelectedCategory(cat.value)}
           >
-            {cat.icon} {cat.label}
+            {cat.icon} {cat.label} ({categoryCounts[cat.value]})
           </button>
         ))}
       </div>
@@ -296,22 +328,51 @@ export default function WardrobePanel({
       {filteredItems.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">👕</div>
-          <p>アイテムがありません。<br />「+ アイテム追加」ボタンで服を登録しましょう。</p>
+          <p>アイテムがありません。</p>
+          <p style={{ color: '#666', marginTop: 8 }}>
+            「+ アイテム追加」ボタンで服を登録するか、<br />
+            「サンプルデータを追加」で試してみましょう。
+          </p>
+          {items.length === 0 && (
+            <button
+              className="btn btn-primary"
+              style={{ marginTop: 20 }}
+              onClick={onLoadSampleData}
+            >
+              📦 サンプルデータを追加
+            </button>
+          )}
         </div>
       ) : (
         <div className="wardrobe-grid">
           {filteredItems.map(item => (
             <div key={item.id} className="wardrobe-item">
               <div className="wardrobe-item-icon">{getCategoryIcon(item.category)}</div>
-              <div className="outfit-item-name">{item.name}</div>
-              <div className="outfit-item-color">
-                {COLOR_OPTIONS.find(c => c.value === item.color)?.label || item.color}
-              </div>
-              <div style={{ fontSize: '0.8rem', color: '#999', marginTop: 4 }}>
-                着用回数: {item.wearCount}
+              <div className="wardrobe-item-name">{item.name}</div>
+              <div className="wardrobe-item-meta">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
+                  <span
+                    className="color-swatch"
+                    style={{ backgroundColor: getColorHex(item.color) }}
+                  />
+                  {getColorLabel(item.color)}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#999' }}>
+                  着用: {item.wearCount}回
+                  {item.waterResistant && ' 💧'}
+                  {item.windResistant && ' 🌬️'}
+                </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {items.length > 0 && (
+        <div className="quick-actions">
+          <span style={{ color: '#666', fontSize: '0.9rem' }}>
+            💡 ヒント: トップス・ボトムス・靴を各1点以上登録すると提案が受けられます
+          </span>
         </div>
       )}
     </div>
