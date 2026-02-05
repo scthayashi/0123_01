@@ -25,6 +25,7 @@ type TabType = 'recommendation' | 'wardrobe' | 'preset' | 'feedback';
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>('wardrobe');
   const [user, setUser] = useState<User | null>(null);
+  const [wardrobeVersion, setWardrobeVersion] = useState(0);
   const [recommendation, setRecommendation] = useState<DailyRecommendation | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<ImpressionPreset | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +49,7 @@ function App() {
   const handleAddItem = (item: Omit<ClothingItem, 'id' | 'wearCount'>) => {
     if (!user) return;
     user.getWardrobe().addItem(item);
-    setUser({ ...user } as User);
+    setWardrobeVersion(v => v + 1);
     showSuccess('アイテムを追加しました！');
   };
 
@@ -167,6 +168,7 @@ function App() {
       <div className="panel">
         {activeTab === 'wardrobe' && user && (
           <WardrobePanel
+            key={wardrobeVersion}
             wardrobe={user.getWardrobe()}
             onAddItem={handleAddItem}
             onGetRecommendation={handleGetRecommendation}
