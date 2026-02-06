@@ -14,43 +14,43 @@ export const categories: Category[] = [
     id: 'career',
     label: 'キャリア',
     icon: Briefcase,
-    color: '#8b7355',
+    rgb: [139, 115, 85],
   },
   {
     id: 'relationships',
     label: '人間関係',
     icon: Heart,
-    color: '#c2856e',
+    rgb: [184, 128, 106],
   },
   {
     id: 'finance',
     label: 'ファイナンス',
     icon: Wallet,
-    color: '#7d8a6e',
+    rgb: [115, 138, 100],
   },
   {
     id: 'hobbies',
     label: '趣味',
     icon: Palette,
-    color: '#9b8ab8',
+    rgb: [148, 130, 176],
   },
   {
     id: 'social',
     label: '社会貢献',
     icon: Globe,
-    color: '#6e8fa0',
+    rgb: [104, 136, 152],
   },
   {
     id: 'intellect',
     label: '知性',
     icon: BookOpen,
-    color: '#a08b6e',
+    rgb: [152, 133, 100],
   },
   {
     id: 'health',
     label: '健康',
     icon: Activity,
-    color: '#7daa8e',
+    rgb: [110, 162, 130],
   },
 ]
 
@@ -61,13 +61,13 @@ export const questions: Question[] = [
     title: '具体的な気づきは？',
     subtitle: '今日の学びを、あなたの言葉で自由に書いてください。',
     placeholder:
-      '例: ミーティングで相手の話を最後まで聞くことで、より深い議論ができた。',
+      'ミーティングで相手の話を最後まで聞くことで、より深い議論ができた…',
   },
   {
     id: 'next-action',
     type: 'text',
     title: 'ネクストアクションは？',
     subtitle: 'この気づきを活かして、明日から何をしますか？',
-    placeholder: '例: 相手が話し終えるまで3秒待つルールを作る。',
+    placeholder: '相手が話し終えるまで3秒待つルールを作る…',
   },
 ]

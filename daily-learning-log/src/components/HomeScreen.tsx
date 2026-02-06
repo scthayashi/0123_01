@@ -1,28 +1,37 @@
 import { motion } from 'framer-motion'
 import { categories } from '../data/questions'
-import { getTodayCount } from '../lib/storage'
+import { getTodayCount, rgba } from '../lib/storage'
 import type { Category } from '../types'
 
 interface Props {
   onSelect: (category: Category) => void
 }
 
+const ease = [0.22, 1, 0.36, 1]
+
 const containerVariants = {
   hidden: {},
   visible: {
-    transition: {
-      staggerChildren: 0.06,
-    },
+    transition: { staggerChildren: 0.055, delayChildren: 0.25 },
   },
 }
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 16 },
+  hidden: { opacity: 0, y: 20, scale: 0.97 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
+    scale: 1,
+    transition: { duration: 0.5, ease },
   },
+}
+
+function formatDate(): string {
+  const d = new Date()
+  const month = d.getMonth() + 1
+  const day = d.getDate()
+  const weekdays = ['日', '月', '火', '水', '木', '金', '土']
+  return `${month}月${day}日（${weekdays[d.getDay()]}）`
 }
 
 export default function HomeScreen({ onSelect }: Props) {
@@ -32,74 +41,90 @@ export default function HomeScreen({ onSelect }: Props) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      className="min-h-dvh px-6 pt-16 pb-12"
+      exit={{ opacity: 0, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.4 }}
+      className="min-h-dvh px-6 pt-[env(safe-area-inset-top,0px)]"
     >
-      <header className="mb-14 max-w-sm mx-auto">
-        <motion.p
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
-          className="text-xs tracking-widest text-zinc-400 uppercase mb-4"
-        >
-          Learning Log
-        </motion.p>
-        <motion.h1
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="text-2xl font-semibold text-zinc-800 leading-relaxed"
-        >
-          今日の学びは
-          <br />
-          何ですか？
-        </motion.h1>
-        {todayCount > 0 && (
+      <div className="max-w-[380px] mx-auto pt-14 pb-16">
+        {/* Header */}
+        <header className="mb-16">
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="mt-3 text-sm text-zinc-400"
+            transition={{ delay: 0.05, duration: 0.6 }}
+            className="text-[11px] tracking-[0.15em] text-stone-400 mb-6"
           >
-            今日は {todayCount} 件の学びを記録しました
+            {formatDate()}
           </motion.p>
-        )}
-      </header>
 
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="max-w-sm mx-auto grid grid-cols-2 gap-3"
-      >
-        {categories.map((cat) => (
-          <motion.button
-            key={cat.id}
-            variants={itemVariants}
-            whileTap={{ scale: 0.96 }}
-            onClick={() => onSelect(cat)}
-            className="group relative flex flex-col items-start gap-4 rounded-2xl bg-white/70 p-5 text-left transition-colors hover:bg-white cursor-pointer"
-            style={{
-              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-            }}
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.6, ease }}
+            className="text-[22px] font-semibold text-stone-800 leading-[1.6]"
           >
-            <span
-              className="flex h-10 w-10 items-center justify-center rounded-xl"
-              style={{ backgroundColor: cat.color + '12' }}
+            今日の学びは
+            <br />
+            何ですか？
+          </motion.h1>
+
+          {todayCount > 0 && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.35, duration: 0.5 }}
+              className="mt-4 text-[13px] text-stone-400"
             >
-              <cat.icon
-                size={19}
-                strokeWidth={1.8}
-                style={{ color: cat.color }}
-              />
-            </span>
-            <span className="text-sm font-medium text-zinc-700 group-hover:text-zinc-900 transition-colors">
-              {cat.label}
-            </span>
-          </motion.button>
-        ))}
-      </motion.div>
+              今日 {todayCount} 件の学びを記録しました
+            </motion.p>
+          )}
+        </header>
+
+        {/* Category Grid */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-2 gap-3"
+        >
+          {categories.map((cat, i) => {
+            const isLast = i === categories.length - 1 && categories.length % 2 !== 0
+            return (
+              <motion.button
+                key={cat.id}
+                variants={itemVariants}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.97, y: 0 }}
+                onClick={() => onSelect(cat)}
+                className={`
+                  group relative flex flex-col items-start gap-5
+                  rounded-2xl bg-white/60 p-5 text-left
+                  cursor-pointer transition-colors duration-200
+                  hover:bg-white/90
+                  ${isLast ? 'col-span-2 max-w-[calc(50%-6px)]' : ''}
+                `}
+                style={{
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.03), 0 0 0 1px rgba(0,0,0,0.02)',
+                }}
+              >
+                <span
+                  className="flex h-10 w-10 items-center justify-center rounded-[12px] transition-transform duration-200 group-hover:scale-105"
+                  style={{ backgroundColor: rgba(cat.rgb, 0.08) }}
+                >
+                  <cat.icon
+                    size={18}
+                    strokeWidth={1.7}
+                    style={{ color: rgba(cat.rgb, 0.75) }}
+                  />
+                </span>
+                <span className="text-[13px] font-medium text-stone-600 group-hover:text-stone-800 transition-colors duration-200">
+                  {cat.label}
+                </span>
+              </motion.button>
+            )
+          })}
+        </motion.div>
+      </div>
     </motion.div>
   )
 }

@@ -21,3 +21,7 @@ export function getTodayCount(): number {
   const today = new Date().toISOString().slice(0, 10)
   return loadEntries().filter((e) => e.createdAt.slice(0, 10) === today).length
 }
+
+export function rgba(rgb: [number, number, number], alpha: number): string {
+  return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`
+}

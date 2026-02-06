@@ -2,9 +2,9 @@
 
 @theme {
   --color-stone-25: #fdfcfb;
-  --color-accent: #c2856e;
-  --color-accent-light: #f0ddd5;
-  --color-accent-dark: #a06a54;
+  --color-accent: #b8806a;
+  --color-accent-light: #eeddd4;
+  --color-accent-dark: #9a6850;
 }
 
 html {
@@ -14,16 +14,19 @@ html {
     "Noto Sans JP",
     system-ui,
     -apple-system,
+    BlinkMacSystemFont,
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  letter-spacing: 0.01em;
 }
 
 body {
   background-color: var(--color-stone-25);
-  color: #3f3f46;
+  color: #44403c;
   min-height: 100dvh;
   margin: 0;
+  line-height: 1.7;
 }
 
 #root {
@@ -37,4 +40,8 @@ input:focus {
 
 ::selection {
   background-color: var(--color-accent-light);
+}
+
+textarea {
+  line-height: 1.8;
 }

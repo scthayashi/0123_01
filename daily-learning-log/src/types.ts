@@ -4,7 +4,7 @@ export interface Category {
   id: string
   label: string
   icon: LucideIcon
-  color: string
+  rgb: [number, number, number]
 }
 
 export interface Question {

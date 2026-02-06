@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
 import { questions } from '../data/questions'
-import { saveEntry } from '../lib/storage'
+import { saveEntry, rgba } from '../lib/storage'
 import type { Category, LogEntry } from '../types'
 import QuestionStep from './QuestionStep'
 
@@ -12,18 +12,23 @@ interface Props {
   onBack: () => void
 }
 
+const ease = [0.22, 1, 0.36, 1]
+
 const slideVariants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 280 : -280,
+  enter: (dir: number) => ({
+    x: dir > 0 ? 200 : -200,
     opacity: 0,
+    filter: 'blur(4px)',
   }),
   center: {
     x: 0,
     opacity: 1,
+    filter: 'blur(0px)',
   },
-  exit: (direction: number) => ({
-    x: direction > 0 ? -280 : 280,
+  exit: (dir: number) => ({
+    x: dir > 0 ? -200 : 200,
     opacity: 0,
+    filter: 'blur(4px)',
   }),
 }
 
@@ -71,72 +76,84 @@ export default function WizardScreen({ category, onComplete, onBack }: Props) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="min-h-dvh flex flex-col px-6 pt-14 pb-8"
+      exit={{ opacity: 0, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.35 }}
+      className="min-h-dvh flex flex-col px-6 pt-[env(safe-area-inset-top,0px)]"
     >
-      {/* Header */}
-      <div className="max-w-sm mx-auto w-full mb-10">
-        <div className="flex items-center justify-between mb-8">
+      <div className="max-w-[380px] mx-auto w-full flex flex-col flex-1 pt-12 pb-10">
+        {/* Nav */}
+        <div className="flex items-center justify-between mb-10">
           <motion.button
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.92 }}
             onClick={handleBack}
-            className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer -ml-1"
+            className="flex items-center gap-1 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer -ml-0.5"
           >
-            <ArrowLeft size={18} strokeWidth={1.8} />
-            <span className="text-sm">
+            <ArrowLeft size={17} strokeWidth={1.7} />
+            <span className="text-[13px]">
               {step === 0 ? '戻る' : '前へ'}
             </span>
           </motion.button>
+
           <div className="flex items-center gap-2">
             <span
-              className="flex h-6 w-6 items-center justify-center rounded-lg text-xs"
-              style={{
-                backgroundColor: category.color + '14',
-                color: category.color,
-              }}
+              className="flex h-5 w-5 items-center justify-center rounded-md"
+              style={{ backgroundColor: rgba(category.rgb, 0.1) }}
             >
-              <category.icon size={13} strokeWidth={2} />
+              <category.icon
+                size={11}
+                strokeWidth={2}
+                style={{ color: rgba(category.rgb, 0.7) }}
+              />
             </span>
-            <span className="text-xs text-zinc-400">{category.label}</span>
+            <span className="text-[11px] text-stone-400 tracking-wide">
+              {category.label}
+            </span>
           </div>
         </div>
 
-        {/* Progress bar */}
-        <div className="h-0.5 w-full bg-zinc-100 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full rounded-full"
-            style={{ backgroundColor: category.color }}
-            initial={{ width: 0 }}
-            animate={{ width: `${progress * 100}%` }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-          />
+        {/* Progress */}
+        <div className="mb-12">
+          <div className="flex gap-1.5">
+            {questions.map((_, i) => (
+              <motion.div
+                key={i}
+                className="h-[2px] flex-1 rounded-full overflow-hidden"
+                style={{ backgroundColor: rgba(category.rgb, 0.08) }}
+              >
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: rgba(category.rgb, 0.5) }}
+                  initial={{ width: '0%' }}
+                  animate={{ width: i < step ? '100%' : i === step ? `${progress / questions.length * 100 * questions.length}%` : '0%' }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                />
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Question area */}
-      <div className="flex-1 max-w-sm mx-auto w-full relative">
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={step}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{
-              duration: 0.35,
-              ease: [0.25, 0.46, 0.45, 0.94],
-            }}
-          >
-            <QuestionStep
-              question={currentQuestion}
-              value={answers[currentQuestion.id] || ''}
-              isLast={isLast}
-              accentColor={category.color}
-              onSubmit={handleNext}
-            />
-          </motion.div>
-        </AnimatePresence>
+        {/* Question */}
+        <div className="flex-1 relative">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={step}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.4, ease }}
+            >
+              <QuestionStep
+                question={currentQuestion}
+                value={answers[currentQuestion.id] || ''}
+                isLast={isLast}
+                categoryRgb={category.rgb}
+                onSubmit={handleNext}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </motion.div>
   )
