@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-stone-25: #fdfcfb;
+  --color-accent: #c2856e;
+  --color-accent-light: #f0ddd5;
+  --color-accent-dark: #a06a54;
+}
+
+html {
+  font-family:
+    "Hiragino Kaku Gothic ProN",
+    "Hiragino Sans",
+    "Noto Sans JP",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-stone-25);
+  color: #3f3f46;
+  min-height: 100dvh;
+  margin: 0;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+textarea:focus,
+input:focus {
+  outline: none;
+}
+
+::selection {
+  background-color: var(--color-accent-light);
+}
